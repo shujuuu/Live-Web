@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    body,
+    div,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    img,
+    a,
+    video {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+        position: relative;
+        width: 480px;
+        margin: 0 auto;
+        /* transform: translateY(-50%); */
+    }
+
+    .food {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .left {
+        left: 20px;
+    }
+
+    .right {
+        right: 20px;
+    }
+
+    button {
+        padding: 20px;
+        background-color: white;
+        border-radius: 5px;
+    }
+
+    #cereal {
+        display: none;
+    }
+
+    .videoHid .videoShow {
+        display: block;
+    }
+
+    #activity {
+        position: absolute;
+    }
+
+    #activity p {
+        /* display: inline-block; */
+        padding: 20px;
+        border: 1px solid #ccc;
+        width: 110px;
+    }
+
+    h3 {
+        padding: 20px 0;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Week 1 HW - Interactive Self Portrait</title>
+</head>
+
+<body>
+    <div class='container'>
+        <h3>Interactive Self Portrait</h3>
+
+        <img id='cereal' class='left food onTop' width='100' height='100' src="asset/cereal.png" alt="">
+
+        <div id='mainVideo'>
+            <video id='video1' src="asset/selfPortrait-bCut.mp4" width='480' autoplay controls muted preload='metadata'>
+                <source src='asset/selfPortrait-bCut' type='video/mp4'>
+            </video>
+        </div>
+        <p id='os'></p>
+        <div id='breakfastDisplay'>
+            <button id='cerealBtn'>yes. get some cereals from the fridge.</button>
+            <button id='skipBtn'>skip it and start working.</button>
+        </div>
+        <div id='activityDisplay'>
+            <button id='walkBtn'>Go on a stroll</button>
+            <button id='hwBtn'>Do homework</button>
+        </div>
+        <audio id='bgm'>
+
+            <p style='font-size:12px;'>bgm playlist by <a href='https://www.patreon.com/dreamy2112'>Dreamy</a></p>
+            <source src='asset/lofi-bgm.mp3' type='audio/ogg'>
+            </source>
+            <source src='asset/lofi-bgm.mp3' type='audio/mpeg'>
+            </source>
+        </audio>
+
+        <!-- <div id='speedManipulationDisplay'>
+            <button id='fast'>Work Harder!!!</button>
+            <button id='cheat'>Cheat</button>
+        </div> -->
+    </div>
+
+</body>
+
+<script>
+    let mainVideo = document.getElementById('mainVideo');
+    let os = document.getElementById('os');
+    let cereal = document.getElementById('cereal');
+    let breakfastDisplay = document.getElementById('breakfastDisplay');
+    let skipBtn = document.getElementById('skipBtn');
+    let cerealBtn = document.getElementById('cerealBtn');
+
+    let video1 = document.getElementById('video1');
+
+    let activityWalk = document.getElementById('activityWalk');
+    let activityHW = document.getElementById('activityHW');
+    let walkBtn = document.getElementById('walkBtn');
+    let hwBtn = document.getElementById('hwBtn');
+    let activityDisplay = document.getElementById('activityDisplay');
+
+    let speedManipulationDisplay = document.getElementById('speedManipulationDisplay');
+    let fast = document.getElementById('fast');
+    let cheat = document.getElementById('cheat');
+    let bgm = document.getElementsByTagName('audio');
+
+    //1. Activity 1 : Breakfast or skip
+    //auto play vid, pause after 10 sec
+    //prompt breakfast options
+    window.addEventListener('load', videoStart);
+
+    function videoStart() {
+        hideDisplay();
+        video1.addEventListener('timeupdate', function () {
+            console.log(video1.currentTime, os.innerHTML);
+            if (video1.currentTime > 6 && video1.currentTime < 6.2) {
+                os.style.display = 'block';
+                os.innerHTML = "Ummm...Feeling a bit hungry. I should probably have lunch.";
+            }
+            if (video1.currentTime < 9.2 && video1.currentTime > 9) {
+                cerealBtn.style.display = 'inline-block';
+                skipBtn.style.display = 'inline-block';
+                video1.pause();
+            }
+        });
+    }
+
+    cerealBtn.addEventListener('click', playCereal);
+    skipBtn.addEventListener('click', playSkip);
+
+    function hideDisplay() {
+        os.innerHTML = ' ';
+        os.style.display = 'none';
+        // breakfastDisplay.style.display = 'none';
+        // activityDisplay.style.display = 'none';
+        // speedManipulationDisplay.style.display = 'none';
+        cerealBtn.style.display = 'none';
+        skipBtn.style.display = 'none';
+        walkBtn.style.display = 'none';
+        hwBtn.style.display = 'none';
+
+    }
+
+    function playCereal() {
+        console.log('cereal triggered');
+        cereal.style.display = 'inline-block';
+        video1.play();
+        hideDisplay();
+        video1.addEventListener('timeupdate', function () {
+            if (video1.currentTime > 23 && video1.currentTime < 23.2) {
+                video1.pause();
+                cereal.style.display = 'none';
+                walkBtn.style.display = 'inline-block';
+                hwBtn.style.display = 'inline-block';
+            }
+            if (video1.currentTime > 21 && video1.currentTime < 22) {
+                os.innerHTML = 'okay, what next!';
+                os.style.display = 'block';
+            }
+        })
+    }
+
+    function playSkip() {
+        console.log('skip triggered');
+        hideDisplay();
+        playHW();
+    }
+
+    //2. Activity 2 : Walk or HW
+    walkBtn.addEventListener('click', playWalk);
+    hwBtn.addEventListener('click', playHW);
+
+    function playWalk() {
+        console.log('walk triggered');
+        hideDisplay();
+        video1.play();
+        video1.addEventListener('timeupdate', function () {
+            if (video1.currentTime > 41 && video1.currentTime < 41.2) {
+                console.log('hereeeeeeeeeeee');
+                os.innerHTML = 'okay, let us get home and do some hw';
+                os.style.display = 'block';
+            }
+            if (video1.currentTime > 44 && video1.currentTime < 44.2) {
+                hwBtn.style.display = 'inline-block';
+                hwBtn.innerHTML = 'yes!!!!!!';
+                video1.pause();
+            }
+        })
+    }
+
+    function playHW() {
+        console.log('hw triggered');
+        hideDisplay();
+        os.style.display = 'none';
+        video1.currentTime = 45;
+        video1.play();
+        bgm.style.display = 'block';
+        // video1.addEventListener('timeupdate', function () {
+        //     if (video1.currentTime > 55) {
+        //         speedManipulationDisplay.style.display = 'block';
+        //         playSpeedManipulation();
+        //     }
+        // })
+    }
+
+    // let speed = 5;
+    // speedManipulationDisplay.addEventListener('click', playSpeedManipulation);
+
+    // function playSpeedManipulation() {
+    //     fast.addEventListener('click', function () {
+    //         video1.playbackRate = speed;
+
+    //     })
+    //     cheat.addEventListener('click', function () {
+    //         console.log(duration);
+    //         video1.currentTime = video1.duration;
+    //     })
+    // }
+</script>
+
+</html>
