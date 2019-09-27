@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>Scroll Marathon - Sending Other Data</title>
+</head>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: brown;
+    }
+
+    #finishLine {
+        position: relative;
+        top: 10000px;
+        margin-bottom: 750px;
+        height: 50px;
+        width: 100%;
+        background-color: white;
+    }
+
+    #canvas {
+        position: absolute;
+    }
+
+    .createRunnerImg {
+        position: absolute;
+        width: 50px;
+        padding: 10px;
+        top: 100px;
+    }
+</style>
+
+<body>
+    <div id='canvas'></div>
+    <div id='finishLine'></div>
+</body>
+
+<script>
+    //getting other data from server
+    let socket = io.connect('');
+
+    let runners = ['runner1.png', 'runner2.png', 'runner3.png', 'runner4.png', 'runner5.png'];
+    let canvas, context;
+    canvas = document.getElementById('canvas');
+
+    //shown in client
+    for (let i = 0; i < runners.length; i++) {
+        createRunnerImg = document.createElement('img');
+        createRunnerImg.src = `./img/${runners[i]}`;
+        createRunnerImg.classList.add('createRunnerImg');
+        let runnerRandomX = Math.random() * 1000;
+        createRunnerImg.style.left = `${runnerRandomX}px`;
+        canvas.appendChild(createRunnerImg);
+        console.log(createRunnerImg);
+    }
+
+    window.addEventListener('load', function () {
+        window.addEventListener('scroll', function (e) {
+
+            // console.log(e);
+            let scrollable = document.documentElement.scrollHeight - window
+                .innerHeight; //entire height of the document
+            let scrolled = window.scrollY;
+            console.log(scrolled);
+
+            //when user scroll draw traces - optional (come back later)
+            //move runner image
+            if (Math.ceil(scrolled) != scrollable) {
+                let incrementRun = 5;
+                let startRun = 0;
+                createRunnerImg.style.top = (startRun * incrementRun) + 'px';
+            }
+
+            //reach finish line
+            if (Math.ceil(scrolled) === scrollable) {
+                alert('you win!!');
+                console.log('end of page!')
+                // socket.emit('endGame', {
+                //     isEnd: true
+                // })
+            }
+            //emit some event
+            socket.emit('scroll', scrolled); //caanot pass object??
+        })
+
+    })
+    // listen from server, when connected
+    socket.on('connect', function () {
+        console.log('connected!!');
+    });
+
+    //listen for events
+    socket.on('scroll', function (data) {
+        console.log(data + 'from server');
+        // let incrementRun = data * 5;
+        createRunnerImg.style.top = `${data}px`;
+        console.log(createRunnerImg.style.top);
+    })
+</script>
+
+</html>
