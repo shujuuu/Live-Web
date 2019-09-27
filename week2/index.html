@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        body {
+            background-color: #ff9982;
+            padding: 0 20px;
+        }
+
+        .newMyMsg {
+            padding: 5px;
+            background-color: #a4fcbb;
+            border-radius: 10px;
+            max-width: 560px;
+        }
+
+        .newOtherMsg {
+            padding: 5px;
+            background-color: #fffd82;
+            border-radius: 10px;
+            max-width: 560px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        var socket = io.connect();
+
+        // let topicsArr = ['weather', 'light', 'U.S. China Trade War', 'gummy bear', 'Filipino food',
+        //     'myopic', 'javascript', 'God', 'ITP', 'quarter-life crisis'
+        // ];
+        // let randomInt = Math.floor(Math.random() * 10);
+        // let topic = topicsArr[randomInt];
+        // console.log(`console from client: topic ${randomInt}, ${topic}`);
+
+        socket.on('connect', function () {
+            console.log("Connected");
+        });
+
+        // Receive from any event
+        socket.on('chatmessage', function (data) {
+
+            console.log(data);
+            //customize-> make line break, clear input
+            let otherMsg = document.getElementById('messages');
+            let newOtherMsg = document.createElement('p');
+            newOtherMsg.innerHTML = `${data}`;
+            newOtherMsg.classList.add('newOtherMsg');
+            otherMsg.appendChild(newOtherMsg);
+            // document.getElementById('message').value = ` `;
+        });
+        //get topic from server
+        socket.on('giveTopic', function (topic) {
+            console.log(topic);
+        })
+
+        var sendmessage = function (message) {
+            console.log("chatmessage: " + message);
+            socket.emit('chatmessage', message);
+            //customize-> make line break, clear input
+            let myMsg = document.getElementById('messages');
+            let newMyMsg = document.createElement('p');
+            newMyMsg.innerHTML = `${message}`;
+            newMyMsg.classList.add('newMyMsg');
+            myMsg.appendChild(newMyMsg);
+            document.getElementById('message').value = ` `;
+        };
+    </script>
+    <title>Let's Talk About Everything</title>
+</head>
+
+<body>
+    <h1>let's talk about...</h1>
+    <div id="messages"></div>
+    <input type="text" id="message" name="message">
+    <input type="submit" value="submit" onclick="sendmessage(document.getElementById('message').value);">
+</body>
+
+</html>
