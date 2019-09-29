@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>Candid Photos - Click random place on webpage</title>
+    <!-- <title>Drink when you type...</title> -->
+    <!-- <title>Wannabe - </title> -->
+</head>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: beige;
+        font-family: 'Courier New', Courier, monospace
+    }
+
+    canvas {
+        height: 100vh;
+        display: none;
+        position: absolute;
+        top: 0;
+    }
+
+    video {
+        position: absolute;
+        z-index: 1;
+        display: none;
+    }
+
+    .createImg {
+        position: absolute;
+    }
+
+    .snapshot {
+        position: absolute;
+        display: inline-block;
+        padding: 10px 10px 60px 10px;
+        background-color: white;
+    }
+
+    .dateSpan {
+        position: absolute;
+        width: 250px;
+        left: 15px;
+        top: 165px;
+    }
+
+    .instruction {
+        text-align: center;
+        vertical-align: middle;
+        font-size: 50px;
+    }
+</style>
+
+<body>
+    <video id='video'></video>
+    <canvas id='mainCanvas'></canvas>
+    <div id='createdImgs'></div>
+</body>
+
+<script>
+    let socket = io.connect('')
+    //constrain for media
+    let constrainObj = {
+        audio: false,
+        video: {
+            facingMode: "user",
+            width: 360,
+            height: 240
+        }
+    }
+
+    //ask permission
+    let video = document.querySelector('video');
+    let instruction = document.createElement('p');
+    instruction.classList.add('instruction');
+    instruction.innerHTML = 'create snapshots on screen';
+    let createdImgs = document.getElementById('createdImgs');
+    createdImgs.appendChild(instruction);
+
+    // window.addEventListener('mousemove', function (e) {
+    //     instruction.style.left = e.pageX;
+    //     instruction.style.top = e.pageY;
+    // })
+    window.addEventListener('load', function () {
+        navigator.mediaDevices.getUserMedia(constrainObj)
+            .then(function (mediaStream) {
+                // window.addEventListener('mousemove', function (pos) {
+                // console.log(pos.pageX, pos.pageY);
+
+                video.srcObject = mediaStream;
+                video.onloadedmetadata = function (e) { //Q:why pass in an e param
+
+                    // video.style.top = pos.pageX;
+                    // video.style.top = pos.pageY;
+                    video.play();
+                }
+                // })
+            })
+            .catch(function (err) {
+                console.log(err);
+            })
+    })
+
+
+    // socket.on('mouseMove', data => {
+    //     console.log(data);
+    // })
+
+    //when clicked 
+    let canvas = document.getElementById('mainCanvas');
+    let context = canvas.getContext('2d');
+    let date = new Date();
+    window.addEventListener('click', function (e) {
+        // console.log(e.pageX, e.pageY);
+        console.log('clicked!');
+        context.drawImage(video, 0, 0);
+        let snapshotString = canvas.toDataURL('image/jpeg');
+        imgData = {
+            x: e.pageX,
+            y: e.pageY,
+            imgSrc: snapshotString,
+            date: date.toLocaleDateString(),
+            time: date.toLocaleTimeString()
+        }
+        //put randomly
+        // let extractString = snapshotString.slice(27);
+        console.log(snapshotString);
+        socket.emit('mouseClicked', imgData);
+
+    })
+
+    //receive from server and change img data
+    let snapshots = [];
+    let totalSnaps = 0;
+    socket.on('sendImage', img => {
+
+        // let imgHead = "data:image/jpeg;base64,/9j/";
+        // String.prototype.shuffle = function () {
+        //     var a = this.split(""),
+        //         n = a.length;
+
+        //     for (var i = n - 1; i > 0; i--) {
+        //         var j = Math.floor(Math.random() * (i + 1));
+        //         var tmp = a[i];
+        //         a[i] = a[j];
+        //         a[j] = tmp;
+        //     }
+        //     return a.join("");
+        // }
+        snapshots.push(img.imgSrc);
+        totalSnaps += 1;
+        createDiv = document.createElement('div');
+        createImg = document.createElement('img');
+        createDiv.classList.add('createImg');
+        createImg.classList.add('snapshot');
+        let createdImgs = document.getElementById('createdImgs');
+        createdImgs.appendChild(createDiv);
+        createDiv.appendChild(createImg);
+        createImg.src = img.imgSrc;
+
+        createDiv.style.top = `${img.y}px`;
+        createDiv.style.left = `${img.x}px`;
+
+        dateSpan = document.createElement('span');
+        dateSpan.innerHTML = `${img.date}, ${img.time}`;
+        dateSpan.classList.add('dateSpan');
+        createDiv.append(dateSpan);
+        console.log(totalSnaps);
+    });
+</script>
+
+</html>
