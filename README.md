@@ -2,13 +2,13 @@
 Homeworks for Live Web class
 
 ### Week1
-HTML video and audio
+Interactive Self-Portrait - HTML video and audio
 
 ### Week2
-Chatbot
+Let's talk about everything - sending msg data
 
 ### Week3
-Scroll Runner
+Scroll Runner - sending other data
 
 ### Week4
-Photo Snapshots
+Photo Snapshots - with HTTPS
