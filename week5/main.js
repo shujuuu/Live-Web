@@ -38,20 +38,6 @@ socket.on('new peer enter', function (data) {
             makeCall(data[i].peerid)
         });
     }
-
-    // data.forEach(item => {
-    //     console.log(item);
-    //     console.log(data.length);
-    //     let createDiv = document.createElement('div');
-    //     let createImg = document.createElement('img');
-    //     let container = document.getElementById('container');
-    //     createDiv.classList.add('users', 'square');
-    //     createDiv.setAttribute('id', item.peerid);
-    //     createImg.src = item.img;
-    //     createDiv.appendChild(createImg);
-    //     container.appendChild(createDiv);
-
-    //  })
 });
 
 socket.on('new peer enter to all', (data) => {
@@ -87,38 +73,27 @@ peer.on('call', function (incoming_call) {
             ovideoElement.srcObject = remoteStream;
             ovideoElement.setAttribute("autoplay", "true");
             ovideoElement.play();
-            // document.body.appendChild(ovideoElement);
-            document.getElementById('myCrop').appendChild(ovideoElement);
         });
-        // window.location.hash = "#othervideo";
     };
 
     document.getElementById('container').style.display = 'none';
     document.getElementById('othervideo').style.display = 'block';
     document.getElementById('myvideo').style.display = 'block';
-    // let myvid = document.getElementById('myvideo');
-    // document.getElementById('myCrop').appendChild(myvid);
 });
 
 function makeCall(idToCall) {
     var call = peer.call(idToCall, my_stream);
 
     call.on('stream', function (remoteStream) {
-        // console.log("Got remote stream");
         var ovideoElement = document.getElementById('othervideo');
-        // console.log(ovideoElement);
         ovideoElement.srcObject = remoteStream;
         ovideoElement.setAttribute("autoplay", "true");
         ovideoElement.play();
-        // document.body.appendChild(ovideoElement);
-        document.getElementById('otherCrop').appendChild(ovideoElement);
-        // window.location.hash = "#othervideo";
     });
 
     document.getElementById('container').style.display = 'none';
     document.getElementById('othervideo').style.display = 'block';
     document.getElementById('myvideo').style.display = 'block';
-    // document.getElementById('myCrop').appendChild('myvideo');
 }
 
 
