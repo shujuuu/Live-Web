@@ -14,5 +14,5 @@ Scroll Runner - sending other data
 Photo Snapshots - with HTTPS
 
 ### Week5
-Speed Date - PeerJS
+Blind Date - PeerJS
 
