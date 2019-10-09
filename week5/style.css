@@ -34,7 +34,9 @@ body {
   transform: scale(1.1);
 }
 
-
+.contain {
+  position: relative;
+}
 
 #canvas {
   display: none;
@@ -85,6 +87,18 @@ body {
 #logo {
   width: 100px;
   padding: 10px;
+}
+
+#enjoyBtn {
+  padding: 20px;
+  background-color: violet;
+  color: white;
+  border: none;
+  font-size: 20px;
+  display: none;
+  position: absolute;
+  bottom: 0;
+  min-width: 100%;
 }
 
 @media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) {
@@ -138,5 +152,11 @@ body {
     overflow: hidden;
     position: relative;
     height: 40%;
+  }
+
+  #enjoyBtn {
+    font-size: 48px;
+    padding: 50px;
+    display: none;
   }
 }
