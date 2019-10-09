@@ -1,0 +1,187 @@
+/* from test */
+head,
+body {
+  font-family: Carter One;
+  overflow: hidden;
+  /* background: linear-gradient(270deg, #246655, #3673d9, #d936a1, #cd90f0, #8eb234); */
+  background: linear-gradient(270deg, #d936a1, #cd90f0);
+  background-size: 1000% 1000%;
+
+  /* -webkit-animation: AnimationName 30s ease infinite;
+  -moz-animation: AnimationName 30s ease infinite;
+  animation: AnimationName 30s ease infinite; */
+  color: white;
+  padding: 0;
+  margin: 0;
+}
+
+/* @-webkit-keyframes AnimationName {
+  0% {
+    background-position: 0% 50%
+  }
+
+  50% {
+    background-position: 100% 50%
+  }
+
+  100% {
+    background-position: 0% 50%
+  }
+}
+
+@-moz-keyframes AnimationName {
+  0% {
+    background-position: 0% 50%
+  }
+
+  50% {
+    background-position: 100% 50%
+  }
+
+  100% {
+    background-position: 0% 50%
+  }
+}
+
+@keyframes AnimationName {
+  0% {
+    background-position: 0% 50%
+  }
+
+  50% {
+    background-position: 100% 50%
+  }
+
+  100% {
+    background-position: 0% 50%
+  }
+} */
+
+.square {
+  width: 15%;
+  height: 20%;
+  filter: blur(6px);
+  /* float: left;
+  margin-left: 20px;
+  margin-top: 20px; */
+}
+
+#myvideo {
+  /* margin-left: 50vw;
+  transform: translate(-50%); */
+  /* margin-left: 8vw; */
+  /* margin-top: 50vh; */
+  /* margin-bottom: 30vh; */
+  margin-top: 5%;
+  display: none;
+  z-index: 4;
+  width: 100vh;
+}
+
+#othervideo {
+  /* margin-left: 50vw;
+  transform: translate(-50%); */
+  /* padding-left: 20; */
+  /* margin-right: 10vw; */
+  /* margin-top: 60vh;
+  margin-bottom: 30vh; */
+  height: 75%;
+  position: absolute;
+  right: 0;
+  filter: blur(30px);
+  margin: -5px -10px -10px -5px;
+  z-index: -1;
+  /* margin-top: 20px; */
+}
+
+.crop {
+  /* overflow: hidden;
+  width: 50%; */
+}
+
+#canvas {
+  display: none;
+}
+
+#rules {
+  text-align: center;
+}
+
+/* from index */
+#instructions {
+  /* margin: 140px; */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* margin-right: -50%; */
+  transform: translate(-50%, -50%);
+}
+
+#instructions h2 {
+  color: white;
+  text-align: center;
+  /* margin: 140px 0; */
+}
+
+#instructions p {
+  color: pink;
+  font-size: 50px;
+  margin: 0;
+  background: yellow;
+  padding: 0 20px;
+}
+
+#logo {
+  width: 100px;
+  padding: 10px;
+}
+
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) {
+  #container {
+    min-width: 150%;
+  }
+}
+
+@media only screen and (min-device-width: 320px) and (max-device-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  body {
+    text-align: center;
+  }
+
+  #container {
+    min-width: 130%;
+  }
+
+  #instructions {
+    align-content: center;
+    width: 480px;
+  }
+
+  #instructions h2 {
+    font-size: 40px;
+    /* margin-top: 20px; */
+  }
+
+  #instructions p {
+    font-size: 80px;
+  }
+
+  #logo {
+    width: 300px;
+    margin: 100px auto;
+  }
+
+  #othervideo {
+    position: absolute;
+    top: 0;
+    /* left: 0; */
+    /* margin-top: 200px; */
+  }
+
+  #myvideo {
+    min-height: 100%;
+  }
+
+  h1 {
+    font-size: 80px;
+  }
+}
