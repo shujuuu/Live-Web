@@ -51,7 +51,8 @@ socket.on('new peer enter to all', (data) => {
 
         imageDom.children[i].addEventListener('click', function () {
             console.log('clicked: ' + data[i].peerid);
-            makeCall(data[i].peerid)
+            makeCall(data[i].peerid);
+            socket.emit('onConvo', data[i].peerid);
         });
     }
 });
@@ -79,6 +80,11 @@ peer.on('call', function (incoming_call) {
     document.getElementById('container').style.display = 'none';
     document.getElementById('othervideo').style.display = 'block';
     document.getElementById('myvideo').style.display = 'block';
+    setTimeout(function () {
+        document.getElementById('enjoyBtn').style.display = 'block';
+
+    }, 20000);
+    // document.getElementById('enjoyBtn').style.display = 'block';
 });
 
 function makeCall(idToCall) {
@@ -94,6 +100,12 @@ function makeCall(idToCall) {
     document.getElementById('container').style.display = 'none';
     document.getElementById('othervideo').style.display = 'block';
     document.getElementById('myvideo').style.display = 'block';
+    //reveal button after awhile
+    setTimeout(function () {
+        document.getElementById('enjoyBtn').style.display = 'block';
+
+    }, 20000);
+    // document.getElementById('enjoyBtn').style.display = 'block';
 }
 
 
@@ -112,14 +124,11 @@ window.addEventListener('load', function () {
     let canvas = document.getElementById('canvas');
     let context = canvas.getContext('2d');
     let webcam = document.getElementById('myvideo');
-
-
     //if permission allowed
     navigator.mediaDevices.getUserMedia(webcamSettings)
         .then(function (stream) {
 
             // Global for stream
-
             webcam.srcObject = stream;
             webcam.onloadedmetadata = function (e) {
                 webcam.play();
@@ -139,9 +148,37 @@ window.addEventListener('load', function () {
                     socket.emit('new peer', mypeerData);
                 }, 800);
         })
-
-
         .catch(function (err) {
             console.log(err);
         })
+
+    //if enjoy talking
+    // let enjoyBtn = document.querySelector('enjoyBtn');
+    let btnClicked = false;
+
+    // enjoyThis = function () {
+    //     console.log('enjoy talking btn clicked');
+    //     btnClicked = true;
+    //     socket.emit('enjoyTalking', btnClicked);
+    // }
+    document.getElementById('enjoyBtn').addEventListener('touchstart', function () {
+        console.log('enjoy talking btn touched');
+        btnClicked = true;
+        socket.emit('enjoyTalking', btnClicked);
+    })
+    document.getElementById('enjoyBtn').addEventListener('click', function () {
+        console.log('enjoy talking btn clicked');
+        btnClicked = true;
+        socket.emit('enjoyTalking', btnClicked);
+    })
+
+    //backup
+    document.getElementById('enjoyBtn').addEventListener('click', function () {
+        console.log('enjoy talking btn clicked');
+        document.getElementById('othervideo').style.filter = 'none';
+    })
+    document.getElementById('enjoyBtn').addEventListener('touchstart', function () {
+        console.log('enjoy talking btn touched');
+        document.getElementById('othervideo').style.filter = 'none';
+    })
 })
