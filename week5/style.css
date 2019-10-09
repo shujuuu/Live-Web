@@ -4,15 +4,17 @@ body {
   font-family: Carter One;
   overflow: hidden;
   /* background: linear-gradient(270deg, #246655, #3673d9, #d936a1, #cd90f0, #8eb234); */
-  background: linear-gradient(270deg, #d936a1, #cd90f0);
-  background-size: 1000% 1000%;
-
   /* -webkit-animation: AnimationName 30s ease infinite;
   -moz-animation: AnimationName 30s ease infinite;
   animation: AnimationName 30s ease infinite; */
+  background-color: #fee0ff;
   color: white;
   padding: 0;
   margin: 0;
+}
+
+#container {
+  text-align: center;
 }
 
 /* @-webkit-keyframes AnimationName {
@@ -61,6 +63,7 @@ body {
   width: 15%;
   height: 20%;
   filter: blur(6px);
+  clip: rect(10px, 20px, 30px, 40px);
   /* float: left;
   margin-left: 20px;
   margin-top: 20px; */
@@ -107,6 +110,10 @@ body {
   text-align: center;
 }
 
+.highlight {
+  color: #f6a7c4;
+}
+
 /* from index */
 #instructions {
   /* margin: 140px; */
@@ -115,20 +122,36 @@ body {
   left: 50%;
   /* margin-right: -50%; */
   transform: translate(-50%, -50%);
+  width: 80%;
+  text-align: center;
 }
 
 #instructions h2 {
-  color: white;
+  color: #673ab7;
   text-align: center;
+  font-size: 48px;
+  margin: 0;
   /* margin: 140px 0; */
 }
 
 #instructions p {
-  color: pink;
-  font-size: 50px;
-  margin: 0;
-  background: yellow;
+  display: inline-block;
+  text-align: center;
+  /* margin-left: 35%; */
+  /* color: pink; */
+  font-size: 20px;
+  /* margin: 0; */
+  background: #f6a7c4;
   padding: 0 20px;
+}
+
+#instructions p a {
+  text-decoration: none;
+  color: #673ab7;
+}
+
+#rules {
+  color: #644b9f;
 }
 
 #logo {
@@ -153,16 +176,16 @@ body {
 
   #instructions {
     align-content: center;
-    width: 480px;
+    min-width: 480px;
   }
 
   #instructions h2 {
-    font-size: 40px;
+    font-size: 80px;
     /* margin-top: 20px; */
   }
 
   #instructions p {
-    font-size: 80px;
+    font-size: 40px;
   }
 
   #logo {
@@ -181,7 +204,7 @@ body {
     min-height: 100%;
   }
 
-  h1 {
+  h2 {
     font-size: 80px;
   }
 }
