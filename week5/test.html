@@ -1,0 +1,48 @@
+<html>
+
+<head>
+  <script src="peer.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="main.js"> </script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <img id='logo' src="logo.png" alt="">
+  <div class="container" id='container'>
+    <h1 id='rules'>Who do you wish to talk to?</h1>
+    <div class="row" id='images'>
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+      <image class="square" />
+    </div>
+  </div>
+
+  <div id='contain'>
+    <div id='otherCrop' class='crop'>
+      <video id="othervideo"></video>
+    </div>
+    <div id='myCrop' class='crop'></div><video id="myvideo"></video>
+  </div>
+  <canvas id='canvas' width="500" height="480" visibility="hidden"></canvas>
+  <!-- <video src="" id="webcam"></video> -->
+</body>
+
+</html>
