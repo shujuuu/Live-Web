@@ -16,3 +16,5 @@ Photo Snapshots - with HTTPS
 ### Week5
 Blind Date - PeerJS
 
+### Week6 (Midterm)
+Lookbook
