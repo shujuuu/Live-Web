@@ -1,1 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/ml5@0.3.1/dist/ml5.min.js"></script>
+    <!-- <script src='main.js'></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script> -->
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <title>Video clipping</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <!-- <img width='640' id='imageElement' src="test-portrait.jpg" alt=""> -->
+    <!-- <img width='640' id='bpResult' src="" alt=""> -->
+    <video id="webcam" width="640" height="480" autoplay style=""></video>
+</body>
+
+<script>
+    // Grab elements, create settings, etc.
+    let webcam = document.getElementById('webcam');
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+
+    //body pix - js version
+    let imageElement = document.getElementById('imageElement');
+    let bodyPixConfig = {
+        architecture: 'MobileNetV1',
+        outputStride: 16,
+        inputResolution: 513,
+        multiplier: 0.75
+    }
+    let segmentOptions = {
+        flipHorizontal: true,
+        segmentationThreshold: 0.7
+    }
+
+    //bodypix - ml5 version
+    const bodypix = ml5.bodyPix(webcam, bodypixModelReady)
+
+    function bodypixModelReady() {
+        console.log('bodypix model ready');
+        // segment the image given
+        bodypix.segment(gotImage, segmentOptions);
+    }
+
+    function gotImage(err, result) {
+        if (err) {
+            console.log(err)
+            return
+        }
+        // log the result
+        // console.log(result);
+        console.log(result.maskBackground.data);
+
+        //draw the mask
+        // let bpResult = document.getElementById('bpResult');
+        // bpResult.src = result.maskBackground;
+        ctx.drawImage(webcam, 0, 0);
+        let maskBackground = imageDataToCanvas(result.maskBackground.data, result.maskBackground.width, result
+            .maskBackground.height);
+        console.log(result.maskBackground.data)
+        ctx.drawImage(maskBackground, 0, 0, width, height);
+        bodypix.segment(gotImage, segmentOptions);
+    }
+
+    // async function loadAndPredict() {
+    //     const net = await bodyPix.load(bodyPixConfig);
+
+    //     const segmentation = await net.segmentPerson(imageElement, segmentOptions);
+    //     console.log(segmentation);
+    // }
+    // loadAndPredict();
+
+
+    // The detected positions will be inside an array
+    let poses = [];
+
+    // Create a webcam capture
+    // if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    //     navigator.mediaDevices.getUserMedia({
+    //         video: true
+    //     }).then(function (stream) {
+    //         webcam.srcObject = stream;
+    //         webcam.play();
+    //     });
+    // }
+
+    window.addEventListener('load', function () {
+        //if permission allowed
+        navigator.mediaDevices.getUserMedia({
+                video: true,
+                width: 640,
+                height: 480
+            })
+            .then(function (stream) {
+
+                webcam.srcObject = stream;
+                webcam.play();
+                //firebase - setting data
+                setTimeout(
+                    function () {
+                        ctx.drawImage(webcam, 0, 0);
+                        let snapshot = canvas.toDataURL('image/jpeg');
+
+                        var mypeerData = {
+                            img: snapshot
+                        };
+                        // imageElement.src = snapshot;
+                    }, 1000);
+            })
+            .catch(function (err) {
+                console.log(err);
+            })
+    })
+
+    function drawCameraIntoCanvas() {
+        ctx.drawImage(webcam, 0, 0, 640, 480);
+        drawKeypoints();
+        drawSkeleton();
+        window.requestAnimationFrame(drawCameraIntoCanvas);
+    }
+    drawCameraIntoCanvas();
+
+    const poseNet = ml5.poseNet(webcam, posenetModelReady);
+    poseNet.on('pose', gotPoses);
+
+    function gotPoses(results) {
+        poses = results;
+        // console.log(results);
+    }
+
+    function posenetModelReady() {
+        console.log("posenet model ready")
+    }
+
+    function drawKeypoints() {
+        //let user1 = upper body
+        for (let i = 0; i < poses.length; i++) {
+            for (let j = 0; j < poses[i].pose.keypoints.length; j++) {
+                let keypoint = poses[i].pose.keypoints[j];
+                if (keypoint.score > 0.8) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = "red";
+                    ctx.arc(keypoint.position.x, keypoint.position.y, 10, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    // ctx.fill();
+                    ctx.font = "14px Arial";
+                    ctx.fillText(keypoint.part, keypoint.position.x + 15, keypoint.position.y + 5);
+                }
+            }
+        }
+
+        //let user2 = middle body
+
+
+        //let user3 = lower body
+    }
+
+    function drawSkeleton() {
+        for (let i = 0; i < poses.length; i++) {
+            for (let j = 0; j < poses[i].skeleton.length; j++) {
+                let partA = poses[i].skeleton[j][0];
+                let partB = poses[i].skeleton[j][1];
+                ctx.beginPath();
+                ctx.moveTo(partA.position.x, partA.position.y);
+                ctx.lineTo(partB.position.x, partB.position.y);
+                ctx.stroke();
+            }
+        }
+    }
+</script>
+
+</html>
