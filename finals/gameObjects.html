@@ -1,38 +1,385 @@
-// HTTP Portion
-var http = require('http');
-var fs = require('fs');
-var httpServer = http.createServer(requestHandler);
-httpServer.listen(9000);
-console.log('listening 9000');
+<!DOCTYPE html>
+<html lang="en">
 
-function requestHandler(req, res) {
-    var parsedUrl = url.parse(req.url);
-    console.log("The Request is: " + parsedUrl.pathname);
-    fs.readFile(__dirname + parsedUrl.pathname,
-        function (err, data) {
-            if (err) {
-                res.writeHead(500);
-                return res.end('Error loading ' + parsedUrl.pathname);
-            }
-            res.writeHead(200);
-            res.end(data);
-        }
-    );
-}
-
-// WebSocket Portion
-var io = require('socket.io').listen(httpServer);
-io.sockets.on('connection',
-    function (socket) {
-        console.log("We have a new client: " + socket.id);
-        socket.on('chatmessage', function (data) {
-            console.log("Received: 'chatmessage' " + data);
-            socket.broadcast.emit('chatmessage', data);
-            socket.broadcast.emit('chatmessage', socket.id);
-        });
-
-        socket.on('disconnect', function () {
-            console.log("Client has disconnected " + socket.id);
-        });
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>3D Object test</title>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js'></script>
+    <script src='script/GLTFLoader.js'></script>
+    <script src='script/OrbitControls.js'></script>
+    <script src='script/FBXLoader.js'></script>
+    <!-- <script src="script/main.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<style>
+    body {
+        background-color: #ffffff;
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Jomolhari', serif;
+        padding: 0;
+        margin: 0;
     }
-);
+
+    .newMyMsg {
+        padding: 5px 15px;
+        background-color: #c7c7c7;
+        border-radius: 5px;
+        /* min-height: 28px; */
+        min-width: 20px;
+        margin: 5px;
+    }
+
+    .newOtherMsg {
+        padding: 5px 15px;
+        border: 1px solid #aaa;
+        border-radius: 5px;
+        /* min-height: 28px; */
+        min-width: 20px;
+        margin: 5px;
+    }
+
+    #bottom {}
+
+    #messages {}
+
+    #chatHistory {
+        right: 0;
+    }
+
+    #sensorStatus {
+        left: 0;
+    }
+
+    #message {
+        /* min-width: 100%; */
+        min-height: 60px;
+        font-size: 32px;
+        padding: 15px;
+        opacity: 0.75;
+    }
+
+    .inlineElem {
+
+        display: inline-block;
+    }
+
+    #message:focus {
+        outline-color: transparent;
+        outline-style: none;
+    }
+
+    #button {
+        font-size: 32px;
+    }
+
+    h1 {
+        font-size: 50px;
+        color: white;
+        margin: 20px;
+    }
+
+    .interactItem {
+        height: 50px;
+        border: 1px solid #aaa;
+    }
+
+    #scoreTxt {
+        color: red;
+    }
+
+
+    .overCanvas {
+        position: absolute;
+        margin: 0 20px;
+        min-width: 300px;
+
+        position: fixed;
+        bottom: 0;
+        margin: 20px;
+    }
+</style>
+
+<body>
+
+    <!--status-->
+    <div class='overCanvas' id='sensorStatus'>
+        <h5>Avatar Status:</h5>
+        <div id="orient" class='status'>orientation:</div>
+        <div id="motion" class='status'>motion:</div>
+        <div id="compass" class='status'>facing:</div>
+        <div id="touch" class='status'>touched: </div>
+        <div id="esteem" class='status'>feed good level: </div>
+        <div id='scoreTxt'></div>
+    </div>
+    <div id='front-abuser'></div>
+    <div id='back-victim'></div>
+    <div id='side-bystander'></div>
+
+
+    <div id='chatHistory' class='overCanvas'>
+        <h5>Chat History: </h5>
+        <div id="messages"></div>
+        <div id='bottom'>
+            <div id='typeArea' class="inlineElem">
+                <input type="text" id="message" name="message"></input>
+                <input id='button' type="submit" value="submit"
+                    onclick="sendmessage(document.getElementById('message').value);">
+            </div>
+            <div id=''>
+                <img class=" interactItem" src="/model/watergun/screenshot.png" alt="">
+                <img class="interactItem" src="/model/car/screenshot.png" alt="">
+                <img class="interactItem" src="/model/baseballBat/screenshot.png" alt="">
+            </div>
+        </div>
+    </div>
+
+
+</body>
+<script>
+    //0. setup socket
+    let socket = io.connect();
+    socket.on('connect', function () {
+        console.log("Connected");
+    });
+
+    let abuse = ['pig', 'fat', 'ugly', 'short', 'die', 'stupid', 'fuck', 'useless', 'worthless', 'no brainer'];
+    let bully = [];
+    let scoreTxt = document.getElementById("scoreTxt");
+    //2. Receive from any event
+    socket.on('chatmessage', function (data) {
+        // console.log(data);
+        //customize-> make line break, clear input
+        otherMsg = document.getElementById('messages');
+        newOtherMsg = document.createElement('p');
+        newOtherMsg.innerHTML = `${data}`;
+
+        if (bully.includes(data)) {
+            console.log("alert: foul words!");
+
+        }
+        newOtherMsg.classList.add('newOtherMsg');
+        otherMsg.appendChild(newOtherMsg);
+    });
+
+    var sendmessage = function (message) {
+        //customize-> make line break, clear input
+        myMsg = document.getElementById('messages');
+        newMyMsg = document.createElement('p');
+        messageInput = document.getElementById('message');
+
+        console.log(messageInput.value);
+        if (messageInput.value.length == '') {
+            console.log('no value')
+        } else {
+            // console.log('has value');
+            // console.log("chatmessage: " + message);
+            newMyMsg.innerHTML = `${message}`;
+            newMyMsg.classList.add('newMyMsg');
+            myMsg.appendChild(newMyMsg);
+
+            if (bully.includes(message)) {
+                console.log("alert! foul words");
+                scoreTxt.innerHTML = "-5";
+            }
+            document.getElementById('message').value = ` `;
+            socket.emit('chatmessage', message);
+        }
+    };
+
+    //1. mobile sensors - orientation
+    function onOrientationChange(e) {
+        console.log(e);
+
+        let alpha = Math.floor(e.alpha),
+            beta = Math.floor(e.beta),
+            gamma = Math.floor(e.gamma);
+
+        let orient = document.getElementById('orient');
+        orient.innerHTML = `alpha: ${alpha}degrees<br/> beta:  ${beta}degrees<br/> gamma:  ${gamma}degrees`;
+        let orientValues = {
+            x: alpha,
+            y: beta,
+            z: gamma
+        }
+        // socket.emit('singleOrient', orientValues);
+        // socket.on('everyonesOrient', data => {
+        //     console.log(data);
+        // })
+    }
+    //2. motion 
+    //can have with gravity, if grater than x, do something
+    //flip to silent, driving games, reset a form, undo an action
+    function ondevicemotion(e) {
+        let x = Math.floor(e.acceleration.x),
+            y = Math.floor(e.acceleration.y),
+            z = Math.floor(e.acceleration.z);
+
+        let motion = document.getElementById('motion');
+        motion.innerHTML =
+            `acceleration x: ${x} <br/>acceleration y: ${y} <br/>acceleration z: ${z}`;
+    }
+
+    //3. direction, for safari mobile browser only
+    // function handleCompassEvent(e) {
+    //     let compassHeading = e.webkitCompassHeading;
+    //     let compass = document.getElementById('compass');
+    //     compass.innerHTML = `compass due N: ${compassHeading} degree`;
+    // }
+
+
+    //4. touch
+    //touch, moves, removes
+    //current position of touchscreen
+    function handleTouchEvent(e) {
+        let allTouches = e.touches,
+            allTouchesLength = allTouches.length;
+        let touch = document.getElementById('touch');
+
+        if (e.type === 'touchstart') {
+            e.preventDefault();
+        }
+        touch.innerHTML = `${allTouchesLength} touched the screen`;
+    }
+
+    //5. 3d asset
+    //set normal scene: scene, cam, light, model;
+    let scene, cam, renderer, controls;
+    let ambientLight, directionalLight;
+    let floorGeo, loaderCar, car, loaderAvatar, avatar;
+    scene = new THREE.Scene();
+    // window.scene = scene;
+
+    function createCamera() {
+        camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 5000);
+        camera.rotation.y = 45 / 180 * Math.PI; //rotate by 45degrees
+        camera.position.x = 30;
+        camera.position.y = 0;
+        camera.position.z = -1;
+    }
+
+    function createControls() {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.addEventListener('change', renderer);
+    }
+
+    function createLights() {
+        ambientLight = new THREE.AmbientLight(0x404040, 1);
+        scene.add(ambientLight);
+        directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(0, 1, 0);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+    }
+
+    function createFloor() {
+        floorGeo = new THREE.PlaneGeometry(5000, 5000, 1, 1);
+        let floorMaterial = new THREE.MeshPhongMaterial({
+            color: 0xeeeeee,
+            shininess: 0,
+        });
+        let floor = new THREE.Mesh(floorGeo, floorMaterial);
+        floor.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
+        floor.receiveShadow = true;
+        floor.position.y = -11;
+        scene.add(floor);
+    }
+
+    function setScene() {
+        scene.background = new THREE.Color(0xdddddd);
+        // scene.fog = new THREE.Fog(0xf1f1f1, 60, 100); //can remove
+        renderer = new THREE.WebGLRenderer({
+            antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement); //????domElement
+    }
+
+    //load 3d object - my avatar
+    function loadMyAvatar() {
+        let textureLoader = new THREE.TextureLoader(),
+            loaderMyAvatar = new THREE.GLTFLoader(),
+            modelUrl = 'model/avatar2/toThreeJs2-embed.gltf',
+            clock = new THREE.Clock(), // Used for anims, which run to a clock instead of frame rate 
+            currentlyAnimating = false, // Used to check whether characters neck is being used in another anim
+            raycaster = new THREE.Raycaster(), // Used to detect the click on our character
+            model, avatar,
+            anims, animation, idleAnim, mixer, mixers = [],
+            action, delta,
+            textureUrl = 'model/avatar2/3D_Scan_Morph_Texture-edit.png';
+
+        // loaderAnim = document.getElementById('js-loader');
+        let avatarTexture = textureLoader.load(textureUrl);
+        avatarTexture.flipY = false;
+        let mtl = new THREE.MeshPhongMaterial({
+            map: avatarTexture,
+            color: 0xffffff,
+            skinning: true
+        });
+
+        loaderMyAvatar.load(modelUrl, gltf => {
+                console.log(gltf);
+                model = gltf.scene.children[0];
+                avatar = gltf.scene; //model in tutorial
+                avatar.scale.set(7, 7, 7);
+                avatar.position.y = -5;
+
+                avatar.traverse(o => {
+                    if (o.isMesh) {
+                        o.castShadow = true;
+                        o.receiveShadow = true;
+                        o.material = mtl;
+                    }
+                });
+
+                scene.add(avatar);
+                mixer = new THREE.AnimationMixer(avatar);
+                fileAnimations = gltf.animations; // all three
+                idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'Run');
+                idle = mixer.clipAction(idleAnim);
+                idle.play();
+
+                if (mixer) {
+                    mixer.update(clock.getDelta());
+                }
+                updateAnim();
+
+            }, undefined,
+            function (error) {
+                console.log(error);
+            });
+    }
+
+    //render
+    function updateAnim() {
+        // for (const mixer of mixers) {
+        //     mixer.update(clock.getDelta());
+        // }
+        renderer.render(scene, camera);
+        requestAnimationFrame(updateAnim);
+    }
+
+    function onWindowResize() {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    //init, when DOM is loaded
+    document.addEventListener("DOMContentLoaded", function () {
+        setScene();
+        createCamera();
+        createControls();
+        createLights();
+        createFloor();
+        loadMyAvatar();
+        window.addEventListener('deviceorientation', onOrientationChange, false);
+        window.addEventListener('devicemotion', ondevicemotion, false);
+        window.addEventListener('touchstart', handleTouchEvent, false);
+        window.addEventListener('resize', onWindowResize);
+    })
+</script>
+
+</html>
