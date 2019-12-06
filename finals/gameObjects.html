@@ -340,10 +340,7 @@
                 idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'Run');
                 idle = mixer.clipAction(idleAnim);
                 idle.play();
-
-                if (mixer) {
-                    mixer.update(clock.getDelta());
-                }
+            
                 updateAnim();
 
             }, undefined,
@@ -352,8 +349,11 @@
             });
     }
 
-    //render
+    //updateAnim - I SUSPECT SOMETHING'S WRONG HERE!
     function updateAnim() {
+        if (mixer) {
+                    mixer.update(clock.getDelta());
+                }
         // for (const mixer of mixers) {
         //     mixer.update(clock.getDelta());
         // }
@@ -362,9 +362,9 @@
     }
 
     function onWindowResize() {
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+//         camera.aspect = container.clientWidth / container.clientHeight;
+//         camera.updateProjectionMatrix();
+//         renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
     //init, when DOM is loaded
