@@ -1,6 +1,7 @@
 // HTTP Portion
 var http = require('http');
 var fs = require('fs');
+var url = require('url');
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(9000);
 console.log('listening 9000');
