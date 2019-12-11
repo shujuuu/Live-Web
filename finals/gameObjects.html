@@ -11,7 +11,10 @@
     <script src='script/OrbitControls.js'></script>
     <script src='script/FBXLoader.js'></script>
     <!-- <script src="script/main.js"></script> -->
+    <!-- <script src="script/toxic.js"></script> -->
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity"></script>
 </head>
 <style>
     body {
@@ -435,13 +438,23 @@
             x: e.clientX,
             y: e.clientY
         };
-        // console.log(mouseCoord);
-        if (jointNeck && jointSpine) {
+        socket.emit('mousePos', mouseCoord);
+
+        // console.log("mouseCoord");
+        if (jointNeck) {
             moveJoint(mouseCoord, jointNeck, 80);
-            moveJoint(mouseCoord, jointSpine, 80);
+            // moveJoint(data, jointSpine, 80);
         }
     });
+    0
 
+    socket.on('other', data => {
+        // console.log(data);
+        if (jointSpine) {
+            // moveJoint(mouseCoord, jointNeck, 80);
+            moveJoint(data, jointSpine, 80);
+        }
+    })
     //add raycast
     window.addEventListener('click', e => raycast(e));
     window.addEventListener('touchend', e => raycast(e, true));
