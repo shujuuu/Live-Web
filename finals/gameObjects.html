@@ -246,7 +246,7 @@
 
     //5. 3d asset
     //set normal scene: scene, cam, light, model;
-    let scene, cam, renderer, controls;
+    let scene, camera, renderer, controls;
     let ambientLight, directionalLight;
     let floorGeo, floorMaterial, floorMesh;
     scene = new THREE.Scene();
@@ -262,6 +262,7 @@
     function createControls() {
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.addEventListener('change', renderer);
+        controls.enabled = false
     }
 
     function createLights() {
@@ -271,19 +272,20 @@
         directionalLight.position.set(0, 1, 0);
         directionalLight.castShadow = true;
         scene.add(directionalLight);
+
     }
 
     function createFloor() {
-        floorGeo = new THREE.PlaneGeometry(5000, 5000, 1, 1);
-        floorMaterial = new THREE.MeshPhongMaterial({
-            color: 0xeeeeee,
-            shininess: 0,
-        });
-        floorMesh = new THREE.Mesh(floorGeo, floorMaterial);
-        floorMesh.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
-        floorMesh.receiveShadow = true;
-        floorMesh.position.y = -11;
-        scene.add(floorMesh);
+        // floorGeo = new THREE.PlaneGeometry(5000, 5000, 1, 1);
+        // floorMaterial = new THREE.MeshPhongMaterial({
+        //     color: 0xeeeeee,
+        //     shininess: 0,
+        // });
+        // floorMesh = new THREE.Mesh(floorGeo, floorMaterial);
+        // floorMesh.rotation.x = -0.5 * Math.PI; // This is 90 degrees by the way
+        // floorMesh.receiveShadow = true;
+        // floorMesh.position.y = -11;
+        // scene.add(floorMesh);
     }
 
     function setScene() {
@@ -297,15 +299,14 @@
     }
 
     let anims, model, avatar, action, delta, animation, idleAnim, mixer, mixers = [];
-    let clock, jointNeck, jointSpine;
+    let clock, jointNeck, jointSpine, raycaster = new THREE.Raycaster(),
+        currentlyAnimating = false;
     //load 3d object - my avatar
     function loadMyAvatar() {
         let textureLoader = new THREE.TextureLoader(),
             loaderMyAvatar = new THREE.GLTFLoader(),
             modelUrl = 'model/avatar2/toThreeJs2-embed.gltf',
             currentlyAnimating = false, // Used to check whether characters neck is being used in another anim
-            raycaster = new THREE.Raycaster(), // Used to detect the click on our character
-
             textureUrl = './model/avatar2/3D_Scan_Morph_Texture-edit.png';
         clock = new THREE.Clock(); // Used for anims, which run to a clock instead of frame rate
 
@@ -324,6 +325,7 @@
                 avatar = gltf.scene; //model in tutorial
                 avatar.scale.set(7, 7, 7);
                 avatar.position.y = -5;
+                avatar.rotation.y = -4;
                 //mesh
                 avatar.traverse(o => {
                     if (o.isMesh) {
@@ -433,13 +435,63 @@
             x: e.clientX,
             y: e.clientY
         };
-        console.log(mouseCoord);
         // console.log(mouseCoord);
         if (jointNeck && jointSpine) {
-            moveJoint(mouseCoord, jointNeck, 200);
-            moveJoint(mouseCoord, jointSpine, 200);
+            moveJoint(mouseCoord, jointNeck, 80);
+            moveJoint(mouseCoord, jointSpine, 80);
         }
     });
+
+    //add raycast
+    window.addEventListener('click', e => raycast(e));
+    window.addEventListener('touchend', e => raycast(e, true));
+
+    function raycast(e, touch = false) {
+        var mouse = {};
+        if (touch) {
+            mouse.x = 2 * (e.changedTouches[0].clientX / window.innerWidth) - 1;
+            mouse.y = 1 - 2 * (e.changedTouches[0].clientY / window.innerHeight);
+        } else {
+            mouse.x = 2 * (e.clientX / window.innerWidth) - 1;
+            mouse.y = 1 - 2 * (e.clientY / window.innerHeight);
+        }
+        // update the picking ray with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // calculate objects intersecting the picking ray
+        var intersects = raycaster.intersectObjects(scene.children, true);
+
+        if (intersects[0]) {
+            var object = intersects[0].object;
+            object.name = 'shuju'
+            if (object.name === 'shuju') {
+                if (!currentlyAnimating) {
+                    currentlyAnimating = true;
+                    playOnClick();
+                    console.log(object);
+                    console.log("clicked");
+                }
+            }
+        }
+    }
+
+    function playOnClick() {
+        // let anim = Math.floor(Math.random() * possibleAnims.length) + 0;
+        // playModifierAnimation(idle, 0.25, possibleAnims[anim], 0.25);
+        console.log("touched");
+    }
+
+    function playModifierAnimation(from, fSpeed, to, tSpeed) {
+        to.setLoop(THREE.LoopOnce);
+        to.reset();
+        to.play();
+        from.crossFadeTo(to, fSpeed, true);
+        setTimeout(function () {
+            from.enabled = true;
+            to.crossFadeTo(from, tSpeed, true);
+            currentlyAnimating = false;
+        }, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
+    }
 
     function onWindowResize() {
         //         camera.aspect = container.clientWidth / container.clientHeight;
