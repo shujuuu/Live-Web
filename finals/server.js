@@ -26,10 +26,15 @@ var io = require('socket.io').listen(httpServer);
 io.sockets.on('connection',
     function (socket) {
         console.log("We have a new client: " + socket.id);
-        socket.on('chatmessage', function (data) {
-            console.log("Received: 'chatmessage' " + data);
-            socket.broadcast.emit('chatmessage', data);
-            socket.broadcast.emit('chatmessage', socket.id);
+        // socket.on('chatmessage', function (data) {
+        //     console.log("Received: 'chatmessage' " + data);
+        //     socket.broadcast.emit('chatmessage', data);
+        //     socket.broadcast.emit('chatmessage', socket.id);
+        // });
+        socket.on('mousePos', function (data) {
+            console.log(data);
+            socket.broadcast.emit("other", data);
+            // socket.broadcast.emit('chatmessage', socket.id);
         });
 
         socket.on('disconnect', function () {
