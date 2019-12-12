@@ -109,36 +109,8 @@
 
     <!--status-->
     <div class='overCanvas' id='sensorStatus'>
-        <h5>Avatar Status:</h5>
-        <div id="orient" class='status'>orientation:</div>
-        <div id="motion" class='status'>motion:</div>
-        <div id="compass" class='status'>facing:</div>
-        <div id="touch" class='status'>touched: </div>
-        <div id="esteem" class='status'>feed good level: </div>
         <div id='scoreTxt'></div>
     </div>
-    <div id='front-abuser'></div>
-    <div id='back-victim'></div>
-    <div id='side-bystander'></div>
-
-
-    <div id='chatHistory' class='overCanvas'>
-        <h5>Chat History: </h5>
-        <div id="messages"></div>
-        <div id='bottom'>
-            <div id='typeArea' class="inlineElem">
-                <input type="text" id="message" name="message"></input>
-                <input id='button' type="submit" value="submit"
-                    onclick="sendmessage(document.getElementById('message').value);">
-            </div>
-            <div id=''>
-                <img class="interactItem" src="./model/watergun/screenshot.png" alt="">
-                <img class="interactItem" src="./model/car/screenshot.png" alt="">
-                <img class="interactItem" src="./model/baseballBat/screenshot.png" alt="">
-            </div>
-        </div>
-    </div>
-
 
 </body>
 <script>
@@ -302,7 +274,7 @@
     }
 
     let anims, model, avatar, action, delta, animation, idleAnim, mixer, mixers = [];
-    let clock, jointNeck, jointSpine, raycaster = new THREE.Raycaster(),
+    let clock, jointNeck, jointSpine, jointLShoulder, jointRShoulder, jointRLeg, raycaster = new THREE.Raycaster(),
         currentlyAnimating = false;
     //load 3d object - my avatar
     function loadMyAvatar() {
@@ -347,6 +319,18 @@
                         jointSpine = o;
                         // console.log("here is spine " + jointSpine);
                     }
+                    if (o.isBone && o.name == 'mixamorigLeftShoulder') {
+                        jointLShoulder = o;
+                        // console.log("here is spine " + jointSpine);
+                    }
+                    if (o.isBone && o.name == 'mixamorigRightShoulder') {
+                        jointRShoulder = o;
+                        // console.log("here is spine " + jointSpine);
+                    }
+                    if (o.isBone && o.name == 'mixamorigRightUpLeg') {
+                        jointRLeg = o;
+                        // console.log("here is spine " + jointSpine);
+                    }
                 });
 
                 scene.add(avatar);
@@ -354,11 +338,15 @@
                 mixer = new THREE.AnimationMixer(avatar);
                 fileAnimations = gltf.animations; // all three
                 idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'SadIdle');
-                idleAnim.tracks.splice(3, 3);
-                idleAnim.tracks.splice(9, 3);
+                console.log(idleAnim);
+                idleAnim.tracks.splice(3, 3) //spine
+                idleAnim.tracks.splice(9, 3) //neck
+                idleAnim.tracks.splice(15, 3); //lShoulder
+                idleAnim.tracks.splice(84, 3); //rShoulder
+                idleAnim.tracks.splice(168, 3); //rleg
                 idle = mixer.clipAction(idleAnim);
                 idle.play();
-                console.log(idleAnim)
+                // console.log(idleAnim);
                 updateAnim();
 
             }, undefined,
@@ -380,6 +368,11 @@
         let degrees = getMouseDegrees(mouse.x, mouse.y, moveLimit);
         joint.rotation.y = THREE.Math.degToRad(degrees.x);
         joint.rotation.x = THREE.Math.degToRad(degrees.y);
+        // joint.position.y = (mouse.y) / 2;
+        // joint.position.x = (mouse.x) / 2;
+        // if(joint.rotation.x>windowWidth/2){
+
+        // }
     }
 
     //move joint with cursor
@@ -439,22 +432,44 @@
             y: e.clientY
         };
         socket.emit('mousePos', mouseCoord);
-
-        // console.log("mouseCoord");
-        if (jointNeck) {
-            moveJoint(mouseCoord, jointNeck, 80);
-            // moveJoint(data, jointSpine, 80);
-        }
+        // moveJoint(mouseCoord, jointLShoulder, 100);
+        // moveJoint(mouseCoord, jointRShoulder, 100);
     });
-    0
 
     socket.on('other', data => {
-        // console.log(data);
-        if (jointSpine) {
-            // moveJoint(mouseCoord, jointNeck, 80);
-            moveJoint(data, jointSpine, 80);
-        }
+        console.log(data);
+
+        data.forEach(function (user) {
+            let coord = {
+                "x": user.x,
+                "y": user.y,
+            }
+            if (user.control == "rArm") {
+                if (jointRShoulder) {
+                    moveJoint(coord, jointRShoulder, 100);
+                }
+            } else if (user.control == "lArm") {
+                if (jointLShoulder) {
+                    moveJoint(coord, jointLShoulder, 100);
+                }
+            } else if (user.control == "neck") {
+                if (jointNeck) {
+                    moveJoint(coord, jointNeck, 100);
+                }
+            } else if (user.control == "spine") {
+                if (jointSpine) {
+                    moveJoint(coord, jointSpine, 100);
+                } else {
+                    if (jointRLeg == "rLeg") {
+                        moveJoint(coord, jointRLeg, 100);
+                    }
+                }
+            }
+        })
+
     })
+
+
     //add raycast
     window.addEventListener('click', e => raycast(e));
     window.addEventListener('touchend', e => raycast(e, true));
