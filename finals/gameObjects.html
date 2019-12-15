@@ -21,7 +21,7 @@
         background-color: #ffffff;
         margin: 0;
         overflow: hidden;
-        font-family: 'Jomolhari', serif;
+        font-family: 'Jomolhari', sans-serif;
         padding: 0;
         margin: 0;
     }
@@ -98,20 +98,46 @@
         position: absolute;
         margin: 0 20px;
         min-width: 300px;
-
         position: fixed;
         bottom: 0;
         margin: 20px;
     }
+
+    #instructions {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%);
+        top: 15%;
+        /* max-width: 300px; */
+        text-align: center;
+    }
+
+    .dropdown {
+        margin: 30px;
+    }
+
+    #title {
+        font-size: 80px;
+    }
+
+    #speechBubbles {
+        position: absolute;
+    }
 </style>
 
 <body>
-
-    <!--status-->
-    <div class='overCanvas' id='sensorStatus'>
-        <div id='scoreTxt'></div>
+    <div id='instructions'>
+        <div id='title'>Do Not Disturb</div>
+        <div class='dropdown'>I just want to
+            <select id='task'>
+                <option value="idle">Day Dream</option>
+                <option value="pushup">Do Push Up</option>
+                <option value="clap">Watch Comedy</option>
+                <option value="taichi">Practice Taichi</option>
+            </select>
+        </div>
     </div>
-
+    <div id='speechBubbles'>No stop!</div>
 </body>
 <script>
     //0. setup socket
@@ -120,9 +146,8 @@
         console.log("Connected");
     });
 
-    let abuse = ['pig', 'fat', 'ugly', 'short', 'die', 'stupid', 'fuck', 'useless', 'worthless', 'no brainer'];
-    let bully = [];
-    let scoreTxt = document.getElementById("scoreTxt");
+    let speechBubbles = document.getElementById("speechBubbles");
+
     //2. Receive from any event
     socket.on('chatmessage', function (data) {
         // console.log(data);
@@ -133,91 +158,10 @@
 
         if (bully.includes(data)) {
             console.log("alert: foul words!");
-
         }
         newOtherMsg.classList.add('newOtherMsg');
         otherMsg.appendChild(newOtherMsg);
     });
-
-    var sendmessage = function (message) {
-        //customize-> make line break, clear input
-        myMsg = document.getElementById('messages');
-        newMyMsg = document.createElement('p');
-        messageInput = document.getElementById('message');
-
-        console.log(messageInput.value);
-        if (messageInput.value.length == '') {
-            console.log('no value')
-        } else {
-            // console.log('has value');
-            // console.log("chatmessage: " + message);
-            newMyMsg.innerHTML = `${message}`;
-            newMyMsg.classList.add('newMyMsg');
-            myMsg.appendChild(newMyMsg);
-
-            if (bully.includes(message)) {
-                console.log("alert! foul words");
-                scoreTxt.innerHTML = "-5";
-            }
-            document.getElementById('message').value = ` `;
-            socket.emit('chatmessage', message);
-        }
-    };
-
-    //1. mobile sensors - orientation
-    function onOrientationChange(e) {
-        console.log(e);
-
-        let alpha = Math.floor(e.alpha),
-            beta = Math.floor(e.beta),
-            gamma = Math.floor(e.gamma);
-
-        let orient = document.getElementById('orient');
-        orient.innerHTML = `alpha: ${alpha}degrees<br/> beta:  ${beta}degrees<br/> gamma:  ${gamma}degrees`;
-        let orientValues = {
-            x: alpha,
-            y: beta,
-            z: gamma
-        }
-        // socket.emit('singleOrient', orientValues);
-        // socket.on('everyonesOrient', data => {
-        //     console.log(data);
-        // })
-    }
-    //2. motion
-    //can have with gravity, if grater than x, do something
-    //flip to silent, driving games, reset a form, undo an action
-    function ondevicemotion(e) {
-        let x = Math.floor(e.acceleration.x),
-            y = Math.floor(e.acceleration.y),
-            z = Math.floor(e.acceleration.z);
-
-        let motion = document.getElementById('motion');
-        motion.innerHTML =
-            `acceleration x: ${x} <br/>acceleration y: ${y} <br/>acceleration z: ${z}`;
-    }
-
-    //3. direction, for safari mobile browser only
-    // function handleCompassEvent(e) {
-    //     let compassHeading = e.webkitCompassHeading;
-    //     let compass = document.getElementById('compass');
-    //     compass.innerHTML = `compass due N: ${compassHeading} degree`;
-    // }
-
-
-    //4. touch
-    //touch, moves, removes
-    //current position of touchscreen
-    function handleTouchEvent(e) {
-        let allTouches = e.touches,
-            allTouchesLength = allTouches.length;
-        let touch = document.getElementById('touch');
-
-        if (e.type === 'touchstart') {
-            e.preventDefault();
-        }
-        touch.innerHTML = `${allTouchesLength} touched the screen`;
-    }
 
     //5. 3d asset
     //set normal scene: scene, cam, light, model;
@@ -262,6 +206,77 @@
         // floorMesh.position.y = -11;
         // scene.add(floorMesh);
     }
+    window.addEventListener('change', selectDropdown);
+    let task, selectedTask, lastAnim;
+    let idleAnim, pushupAnim, standClapAnim, taichiAnim;
+    let idle, pushup, clap, taichi;
+
+    function selectDropdown() {
+        task = document.getElementById("task");
+        selectedTask = task.options[task.selectedIndex].value;
+        console.log("selected task from select dropdown: " + selectedTask);
+        changeScene(lastAnim, 0.25, selectedTask, 0.25);
+        removeObj();
+    }
+
+    function changeScene(from, fSpeed, to, tSpeed) {
+        console.log("selected task from select changeScene " + selectedTask);
+
+        idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'Jog');
+        idle = mixer.clipAction(idleAnim);
+        pushupAnim = THREE.AnimationClip.findByName(fileAnimations, 'PushUp');
+        pushup = mixer.clipAction(pushupAnim);
+        standClapAnim = THREE.AnimationClip.findByName(fileAnimations, 'CrotchWatching');
+        clap = mixer.clipAction(standClapAnim);
+        taichiAnim = THREE.AnimationClip.findByName(fileAnimations, 'Taichi');
+        taichi = mixer.clipAction(taichiAnim);
+
+
+        //idle animation
+        // idleAnim.tracks.splice(3, 3) //spine
+        // idleAnim.tracks.splice(9, 3) //neck
+        // idleAnim.tracks.splice(15, 3); //lShoulder
+        // idleAnim.tracks.splice(84, 3); //rShoulder
+        if (selectedTask == 'idle') {
+            console.log("having day dream")
+            removeAnim();
+            idle.play();
+            lastAnim = idle;
+            addGardenObj();
+        } else if (selectedTask == 'pushup') {
+            console.log("doing push up")
+            removeAnim();
+            pushup.play();
+            lastAnim = pushup;
+            addFitnessObj();
+        } else if (selectedTask == 'clap') {
+            console.log("watch clapping")
+            removeAnim();
+            clap.play();
+            lastAnim = clap;
+            addLeisureObj();
+        } else {
+            console.log("do taichi")
+            removeAnim();
+            taichi.play();
+            lastAnim = taichi;
+            addMeditationObj();
+        }
+    }
+
+    function removeObj(object) {
+        // scene.remove(object.name);
+        while (scene.children.length > 3) {
+            scene.remove(scene.children[3]);
+        }
+    }
+
+    function removeAnim() {
+        idle.stop();
+        pushup.stop();
+        clap.stop();
+        taichi.stop();
+    }
 
     function setScene() {
         scene.background = new THREE.Color(0xdddddd);
@@ -273,26 +288,26 @@
         document.body.appendChild(renderer.domElement); //????domElement
     }
 
-    let anims, model, avatar, action, delta, animation, idleAnim, mixer, mixers = [];
+    let anims, model, avatar, action, delta, animation, mixer, mixers = [];
+    let textureLoader, loaderMyAvatar, modelUrl, textureUrl, avatarTexture, mtl, fileAnimations;
     let clock, jointNeck, jointSpine, jointLShoulder, jointRShoulder, jointRLeg, raycaster = new THREE.Raycaster(),
         currentlyAnimating = false;
     //load 3d object - my avatar
     function loadMyAvatar() {
-        let textureLoader = new THREE.TextureLoader(),
+        textureLoader = new THREE.TextureLoader(),
             loaderMyAvatar = new THREE.GLTFLoader(),
-            modelUrl = 'model/avatar2/toThreeJs2-embed.gltf',
+            modelUrl = 'model/avatar2/toThreeJs4-moreAction-OK.gltf',
             currentlyAnimating = false, // Used to check whether characters neck is being used in another anim
             textureUrl = './model/avatar2/3D_Scan_Morph_Texture-edit.png';
         clock = new THREE.Clock(); // Used for anims, which run to a clock instead of frame rate
 
-        let avatarTexture = textureLoader.load(textureUrl);
+        avatarTexture = textureLoader.load(textureUrl);
         avatarTexture.flipY = false;
-        let mtl = new THREE.MeshPhongMaterial({
+        mtl = new THREE.MeshPhongMaterial({
             map: avatarTexture,
             color: 0xffffff,
             skinning: true
         });
-
         loaderMyAvatar.load(modelUrl, gltf => {
                 // console.log(gltf);
                 //model
@@ -313,46 +328,103 @@
                     }
                     if (o.isBone && o.name == 'mixamorigNeck') {
                         jointNeck = o;
-                        // console.log("here is " + jointNeck);
                     }
                     if (o.isBone && o.name == 'mixamorigSpine') {
                         jointSpine = o;
-                        // console.log("here is spine " + jointSpine);
                     }
                     if (o.isBone && o.name == 'mixamorigLeftShoulder') {
                         jointLShoulder = o;
-                        // console.log("here is spine " + jointSpine);
                     }
                     if (o.isBone && o.name == 'mixamorigRightShoulder') {
                         jointRShoulder = o;
-                        // console.log("here is spine " + jointSpine);
                     }
                     if (o.isBone && o.name == 'mixamorigRightUpLeg') {
                         jointRLeg = o;
-                        // console.log("here is spine " + jointSpine);
+                    }
+                    if (o.isBone && o.name == 'mixamorigLeftUpLeg') {
+                        jointLLeg = o;
                     }
                 });
 
                 scene.add(avatar);
-
                 mixer = new THREE.AnimationMixer(avatar);
                 fileAnimations = gltf.animations; // all three
-                idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'SadIdle');
-                console.log(idleAnim);
-                idleAnim.tracks.splice(3, 3) //spine
-                idleAnim.tracks.splice(9, 3) //neck
-                idleAnim.tracks.splice(15, 3); //lShoulder
-                idleAnim.tracks.splice(84, 3); //rShoulder
-                idleAnim.tracks.splice(168, 3); //rleg
-                idle = mixer.clipAction(idleAnim);
-                idle.play();
-                // console.log(idleAnim);
+                lastAnim = idle;
+                selectedTask = idle;
+                changeScene(lastAnim, 0.25, selectedTask, 0.25);
                 updateAnim();
 
             }, undefined,
             function (error) {
                 console.log(error);
             });
+    }
+
+    function addFitnessObj() {
+        let loader = new THREE.GLTFLoader();
+        loader.load('model/yoga_mat/scene.gltf', function (gltf) {
+            model = gltf.scene.children[0];
+            model.scale.set(0.08, 0.08, 0.08);
+            model.position.y = -4.8;
+            model.position.z = -4.8;
+            model.rotation.z = 2.0;
+            model.castShadow = true;
+            scene.add(gltf.scene);
+            model.name = 'yoga';
+        }, undefined, function (error) {
+            console.error(error);
+        });
+    }
+
+    function addGardenObj() {
+        let loader = new THREE.GLTFLoader();
+        loader.load('model/plant/scene.gltf', function (gltf) {
+            model = gltf.scene.children[0];
+            model.scale.set(0.8, 0.8, 0.8);
+            // model.position.y = -4.8;
+            model.position.z = -9.8;
+            // model.rotation.z = 2.0;
+            model.castShadow = true;
+            scene.add(gltf.scene);
+            model.name = 'plant';
+
+        }, undefined, function (error) {
+            console.error(error);
+        });
+    }
+
+    function addMeditationObj() {
+        let loader = new THREE.GLTFLoader();
+        loader.load('model/book/scene.gltf', function (gltf) {
+            model = gltf.scene.children[0];
+            model.scale.set(4, 4, 4);
+            model.position.y = -2.8;
+            model.position.z = -4.8;
+            model.rotation.z = 2.0;
+            model.rotation.y = 6.0;
+            model.castShadow = true;
+            scene.add(gltf.scene);
+            model.name = 'book';
+        }, undefined, function (error) {
+            console.error(error);
+        });
+    }
+
+    function addLeisureObj() {
+        let loader = new THREE.GLTFLoader();
+        loader.load('model/tv/scene.gltf', function (gltf) {
+            model = gltf.scene.children[0];
+            model.scale.set(0.01, 0.01, 0.01);
+            // model.position.y = -4.8;
+            model.position.z = -9.8;
+            // model.rotation.z = 2.0;
+            model.castShadow = true;
+            scene.add(gltf.scene);
+            model.name = 'tv';
+
+        }, undefined, function (error) {
+            console.error(error);
+        });
     }
 
     //updateAnim - I SUSPECT SOMETHING'S WRONG HERE!
@@ -368,11 +440,6 @@
         let degrees = getMouseDegrees(mouse.x, mouse.y, moveLimit);
         joint.rotation.y = THREE.Math.degToRad(degrees.x);
         joint.rotation.x = THREE.Math.degToRad(degrees.y);
-        // joint.position.y = (mouse.y) / 2;
-        // joint.position.x = (mouse.x) / 2;
-        // if(joint.rotation.x>windowWidth/2){
-
-        // }
     }
 
     //move joint with cursor
@@ -432,12 +499,10 @@
             y: e.clientY
         };
         socket.emit('mousePos', mouseCoord);
-        // moveJoint(mouseCoord, jointLShoulder, 100);
-        // moveJoint(mouseCoord, jointRShoulder, 100);
     });
 
     socket.on('other', data => {
-        console.log(data);
+        // console.log(data);
 
         data.forEach(function (user) {
             let coord = {
@@ -497,13 +562,16 @@
                     currentlyAnimating = true;
                     playOnClick();
                     console.log(object);
-                    console.log("clicked");
+                    // console.log("clicked");
                 }
             }
         }
     }
 
     function playOnClick() {
+        let speech = document.getElementById("speechBubbles");
+        speech.innerHTML = "Noooo"
+        console.log(speech);
         // let anim = Math.floor(Math.random() * possibleAnims.length) + 0;
         // playModifierAnimation(idle, 0.25, possibleAnims[anim], 0.25);
         console.log("touched");
@@ -521,12 +589,6 @@
         }, to._clip.duration * 1000 - ((tSpeed + fSpeed) * 1000));
     }
 
-    function onWindowResize() {
-        //         camera.aspect = container.clientWidth / container.clientHeight;
-        //         camera.updateProjectionMatrix();
-        //         renderer.setSize(container.clientWidth, container.clientHeight);
-    }
-
     //init, when DOM is loaded
     document.addEventListener("DOMContentLoaded", function () {
         setScene();
@@ -535,10 +597,12 @@
         createLights();
         createFloor();
         loadMyAvatar();
-        window.addEventListener('deviceorientation', onOrientationChange, false);
-        window.addEventListener('devicemotion', ondevicemotion, false);
-        window.addEventListener('touchstart', handleTouchEvent, false);
-        window.addEventListener('resize', onWindowResize);
+        selectDropdown();
+        window.addEventListener("click", playOnClick);
+        // window.addEventListener('deviceorientation', onOrientationChange, false);
+        // window.addEventListener('devicemotion', ondevicemotion, false);
+        // window.addEventListener('touchstart', handleTouchEvent, false);
+        // window.addEventListener('resize', onWindowResize);
     })
 </script>
 
