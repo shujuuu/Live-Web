@@ -1,0 +1,83 @@
+<!-- saved from url=(0059)https://itp.nyu.edu/~sve204/liveweb_fall2019/direction.html -->
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<style>
+	body {
+		font-size: 36px;
+	}
+
+	#instructions {
+		position: absolute;
+		left: 50%;
+		transform: translate(-50%);
+		top: 25%;
+		/* max-width: 300px; */
+		text-align: center;
+		font-size: 80px;
+	}
+
+	#sensor {
+		font-size: 32px;
+	}
+
+	#orient {
+		display: inline-block;
+		margin: 10px;
+		/* left: 20px; */
+	}
+
+	#motion {
+		display: inline-block;
+		margin: 10px;
+		/* left: 500px; */
+	}
+
+	.icon {
+		width: 300px;
+	}
+</style>
+
+<body>
+
+	<div id='instructions'>
+		<img class='icon' src="img/icon-shake.jpg" alt="">
+		<div>Shake Phone to Disrupt</div>
+	</div>
+	<div id='sensor'>
+		<!-- <div id="orient">current orientation</div> -->
+		<div id="motion">current motion</div>
+		<!-- <div id="touch">currently touch</div> -->
+	</div>
+
+</body>
+<script type="text/javascript">
+	let socket = io.connect();
+	socket.on('connect', function () {
+		console.log("Connected");
+	});
+
+	function ondevicemotion(e) {
+		let x = Math.floor(e.acceleration.x),
+			y = Math.floor(e.acceleration.y),
+			z = Math.floor(e.acceleration.z);
+		let devMotion = {
+			"x": x,
+			"y": y,
+			"z": z
+		}
+
+		let motion = document.getElementById('motion');
+		motion.innerHTML =
+			`acceleration x: ${x} <br/>acceleration y: ${y} <br/>acceleration z: ${z}`;
+		if (devMotion.x > 30 || devMotion.y > 30 || devMotion.z > 30) {
+			socket.emit('devMotion', devMotion);
+		};
+	}
+	window.addEventListener('devicemotion', ondevicemotion, false);
+</script>
+
+</html>

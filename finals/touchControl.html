@@ -1,0 +1,80 @@
+<!-- saved from url=(0059)https://itp.nyu.edu/~sve204/liveweb_fall2019/direction.html -->
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<style>
+	body {
+		font-size: 36px;
+	}
+
+	#instructions {
+		position: absolute;
+		left: 50%;
+		transform: translate(-50%);
+		top: 25%;
+		/* max-width: 300px; */
+		text-align: center;
+		font-size: 80px;
+	}
+
+	#sensor {
+		font-size: 32px;
+	}
+
+	#orient {
+		display: inline-block;
+		margin: 10px;
+		/* left: 20px; */
+	}
+
+	#motion {
+		display: inline-block;
+		margin: 10px;
+		/* left: 500px; */
+	}
+
+	.icon {
+		width: 300px;
+	}
+</style>
+
+<body>
+
+	<div id='instructions'>
+		<img src="img/icon-touch.jpg" alt="">
+		<div>Tap to Take Photo</div>
+	</div>
+	<div id='sensor'>
+		<!-- <div id="orient">current orientation</div>
+		<div id="motion">current motion</div> -->
+		<div id="touch">current touch</div>
+	</div>
+
+</body>
+<script type="text/javascript">
+	let socket = io.connect();
+	socket.on('connect', function () {
+		console.log("Connected");
+	});
+	//4. touch --> not working
+	//touch, moves, removes
+	//current position of touchscreen
+	function handleTouchEvent(e) {
+		let allTouches = e.touches,
+			allTouchesLength = allTouches.length;
+
+		let touch = document.getElementById('touch');
+		if (e.type === 'touchstart') {
+			e.preventDefault();
+			socket.emit('devTouch', allTouches);
+		}
+		touch.innerHTML = `${allTouchesLength} touched the screen`;
+	}
+	window.addEventListener('touchstart', handleTouchEvent, false);
+	window.addEventListener('touchend', handleTouchEvent, false);
+</script>
+
+</html>
