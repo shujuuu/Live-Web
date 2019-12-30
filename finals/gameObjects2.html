@@ -24,7 +24,7 @@
         font-family: 'Jomolhari', sans-serif;
         padding: 0;
         margin: 0;
-        font-size: 36px;
+        font-size: 22px;
     }
 
     .newMyMsg {
@@ -96,7 +96,7 @@
         position: absolute;
         left: 50%;
         transform: translate(-50%);
-        /* top: 15%; */
+        top: 50px;
         /* max-width: 300px; */
         text-align: center;
     }
@@ -105,9 +105,9 @@
         margin: 30px;
     }
 
-    #title {
-        font-size: 80px;
-    }
+    /* #title {
+        font-size: 30px;
+    } */
 
     #speechBubbles {
         position: absolute;
@@ -125,26 +125,60 @@
     #sensor {
         font-size: 10px;
     }
+
+    .vert-align {
+        vertical-align: middle;
+    }
+
+    #noTap,
+    #noFlash {
+        display: inline-block;
+        margin-right: 20px;
+    }
+
+    #lastDisrupt,
+    #totalDisrupt {
+        font-size: 15px;
+    }
 </style>
 
 <body>
     <div id='sensor' class='posAbs'>
-        <div id="orient">orientation</div>
+        <!-- <div id="orient">orientation</div>
         <div id="motion">motion</div>
-        <div id="touch">touch</div>
+        <div id="touch">touch</div> -->
     </div>
-    <div id='sign' class='posAbs'><img width='200' src="/img/sign-noTouch.png" alt=""></div>
+    <div id='sign' class='posAbs'>
+        <div id='noTap'>
+            <img class='vert-align' width='30' src="/img/sign-noTouch2.png" alt="">
+            <span class='vert-align'>Do Not Tap</span>
+        </div>
+        <div id='noFlash'>
+            <img class='vert-align' width='30' src="/img/sign-noFlash.png" alt="">
+            <span class='vert-align'>No Flash</span>
+        </div>
+        <div id='lastDisrupt'>
+            <p>Last Disrupted: <span id='date'>12/22/2019 10:00:00AM</span></p>
+        </div>
+        <div id='totalDisrupt'>
+            <p>Total Disruption: <span id='disruption'>0</span></p>
+        </div>
+    </div>
     <div id='instructions'>
-        <!-- <div id='title'>Disrupt</div> -->
-        <div class='dropdown'>Just Let me
-            <select id='task'>
-                <option value="idle">Do Nothing</option>
-                <option value="pushup">Get Fit</option>
-                <option value="clap">Watch NBA</option>
-                <option value="taichi">Practice Tai Chi</option>
-                <option value="dance">Pretend I'm a Dancer</option>
-                <option value="talk">Talk to the Wall</option>
-                <option value="jog">Stroll Around</option>
+        <!-- <div>It's <span id='hhAssigned'>10</span>:<span id='mmAssigned'>00</span>. In the middle of<span
+                id='taskAssigned'> Day Dreaming </span>
+        </div> -->
+        <div>I am in the middle of<span id='taskAssigned'> Day Dreaming </span>
+        </div>
+        <div class='dropdown vert-align'>
+            <select id='task' class='vert-align'>
+                <option value="idle">Day Dreaming</option>
+                <option value="pushup">Getting Fit</option>
+                <option value="clap">Watching NBA</option>
+                <option value="taichi">Practicing Tai Chi</option>
+                <option value="dance">Improving Dance Move</option>
+                <option value="talk">Talking to the Wall</option>
+                <option value="jog">Strolling Around</option>
             </select>
         </div>
     </div>
@@ -157,17 +191,19 @@
     });
 
     socket.on('devMotion', data => {
-        console.log(data);
+        // console.log(data);
         if (!currentlyAnimating) {
             currentlyAnimating = true;
             shakeWorld();
+            updateDisruptText();
         }
     });
     socket.on('devOrient', data => {
-        console.log(data);
+        // console.log(data);
         if (!currentlyAnimating) {
             currentlyAnimating = true;
             rotateWorld(data);
+            updateDisruptText();
         }
     })
     socket.on('devTouch', data => {
@@ -175,8 +211,49 @@
         if (!currentlyAnimating) {
             currentlyAnimating = true;
             flashWorld();
+            updateDisruptText();
         }
     })
+    let disruptionCount = 0;
+    // let hhAssigned = 0;
+    // let mmAssigned = 0;
+
+    //disrupted time
+    function updateDisruptText() { //time
+        let taskAssigned = document.getElementById('taskAssigned');
+        let date = document.getElementById('date');
+        let disruption = document.getElementById('disruption');
+        let now = new Date();
+        let dd = now.getDate();
+        let mm = now.getMonth() + 1;
+        let yyyy = now.getFullYear();
+        let hour = now.getHours();
+        let min = now.getMinutes();
+        let sec = now.getSeconds();
+        let ms = now.getMilliseconds();
+        // console.log(`${mm}/${dd}/${yyyy}`);
+        // console.log(new Date());
+        if (mm < 10) {
+            mm = `0${mm}`
+        }
+        if (dd < 10) {
+            dd = `0${dd}`
+        }
+        if (hour < 10) {
+            hour = `0${hour}`
+        }
+        if (min < 10) {
+            min = `0${min}`
+        }
+        if (sec < 10) {
+            sec = `0${sec}`
+        }
+        date.innerHTML = `${mm}/${dd}/${yyyy} ${hour}:${min}:${sec}`;
+        //if there shake or tap is triggered on mobile control, add count
+        disruptionCount += 1;
+        console.log(disruptionCount);
+        disruption.innerHTML = disruptionCount;
+    }
 
     //5. 3d asset
     //set normal scene: scene, cam, light, model;
@@ -206,7 +283,6 @@
         directionalLight.position.set(0, 1, 0);
         directionalLight.castShadow = true;
         scene.add(directionalLight);
-
     }
     window.addEventListener('change', selectDropdown);
     let task, selectedTask, lastAnim;
@@ -219,6 +295,7 @@
         selectedTask = task.options[task.selectedIndex].value;
         // console.log("selected task from select dropdown: " + selectedTask);
         changeScene(lastAnim, 0.25, selectedTask, 0.25);
+        taskAssigned.innerHTML = ` ${selectedTask}`;
         // removeObj();
     }
 
@@ -678,6 +755,7 @@
 
     //init, when DOM is loaded
     document.addEventListener("DOMContentLoaded", function () {
+        updateDisruptText();
         setScene();
         createCamera();
         createControls();
